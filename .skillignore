@@ -1,0 +1,36 @@
+# Secrets — never package
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+secrets.yaml
+*.secret
+
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local SDD work — never ship the user's actual specs with the skill
+.sdd/
+
+# Repo-only material — input drafts, not part of the installed skill
+sources/
+
+# Logs
+*.log
+logs/

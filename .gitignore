@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Build / dist
+dist/
+build/
+
+# Local SDD work — never commit your own feature specs into the skill repo
+.sdd/
+
+# Logs
+*.log
+logs/
+
+# Secrets — defense in depth
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+secrets.yaml
+*.secret
