@@ -103,6 +103,19 @@ your-project/
             └── ship.md          # Phase 10
 ```
 
+## Parallelism strategy (v1.1.0)
+
+The skill parallelizes **analysis**, not **execution**. Wall-clock improvements come from running multiple analytical sub-agents concurrently at the gates — not from racing implementation tasks.
+
+| Phase | Default | Where parallel helps |
+|---|---|---|
+| **1 — Research** | 4 sub-agents in parallel by default | Big brownfield: 3–5× faster |
+| **3 — Plan** | Sequential | Optional `--explore` mode dispatches 2–3 alternative architectures |
+| **6 — Implement** | **Always sequential** | Only for mechanical refactors on disjoint files |
+| **8 — Code Review** | 4 fresh-context critics in parallel by default | 2–3× catch rate (security / performance / maintainability / AC coverage) |
+
+See [`references/parallel-agents.md`](references/parallel-agents.md) for the full dispatch protocol.
+
 ## Helper scripts
 
 The skill ships with three Python 3 stdlib-only scripts:

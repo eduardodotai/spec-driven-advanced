@@ -22,10 +22,11 @@ allowed-tools:
   - Write
   - Edit
   - Bash
+  - Task
 metadata:
-  version: 1.0.0
+  version: 1.1.0
   author: eduardodotai
-  domains: [meta-skill, software-engineering, sdd, rpi, workflow, planning, agentic]
+  domains: [meta-skill, software-engineering, sdd, rpi, workflow, planning, agentic, parallel-agents]
   type: workflow-orchestrator
 ---
 
@@ -143,6 +144,25 @@ All scripts are Python 3 stdlib only. Run from project root.
 | `scripts/new_feature.py` | `python scripts/new_feature.py <feature-name> [--number N] [--path .]` | Create `.sdd/features/NNN-slug/` with all 8 artifact stubs. Auto-numbers if `--number` omitted. Refuses if constitution still has `[TO BE FILLED]` markers. |
 | `scripts/validate_phase.py` | `python scripts/validate_phase.py <feature_path> <target_phase>` | Verify the feature is ready to advance to `target_phase`. Checks prior artifacts exist, contain required sections, have no stub markers, and (for plan-review/review) carry an APPROVED decision. Exit 0 ready, 10 not ready, 1 error. |
 
+## Parallelism Strategy
+
+Parallelize **analysis**, not **execution**. The bottleneck of AI-assisted engineering is upstream thinking, not keystroke speed. Dispatch parallel sub-agents (single message, multiple Task tool calls) at the analytical phases; keep implementation sequential.
+
+| Phase | Default | Parallel mode | Gain |
+|---|---|---|---|
+| **1 — Research** | Parallel by default | 4 sub-agents: file-locator, pattern-detector, dependency-mapper, constraint-finder + sequential synthesizer | 🔥 Large (3–5× wall-clock on big brownfield) |
+| **3 — Plan** | Sequential | Optional `--explore`: 2–3 sub-agents draft conservative / idiomatic / forward-looking alternatives + synthesizer picks one | 🔥 Medium (catches trade-offs) |
+| **8 — Code Review** | Multi-critic by default | 4 fresh-context critics (security, performance, maintainability, ac-coverage) in parallel + synthesizer | 🔥 Large (2–3× catch rate) |
+| 6 — Implement | **Sequential, always** | Allowed only for mechanical refactors on disjoint files with zero shared state | ⚠ Risky — when in doubt, sequential |
+
+**Mandatory rules for any parallel dispatch:**
+- All sub-agents in a single message (multiple Task tool calls), never serialized
+- Each sub-agent gets a fresh context with disjoint scope
+- A sequential **synthesizer** consolidates outputs into the canonical artifact — raw parallel outputs are never the artifact
+- The writer/reviewer separation rule still holds in Phase 8 (4× — every critic is fresh)
+
+> Read `references/parallel-agents.md` for the full dispatch protocol, sub-agent briefing templates, and Phase 6 safety checklist.
+
 ## Critical Rules
 
 1. **Never skip phases.** Each phase consumes artifacts the previous phase produced. Skipping = vibe coding with extra steps.
@@ -150,7 +170,7 @@ All scripts are Python 3 stdlib only. Run from project root.
 3. **Two human gates: Phase 4 and Phase 8.** Both are *binary* decisions (approve / iterate / reject). Never pretend a gate happened.
 4. **Constitution is permanent.** It is NOT updated mid-feature. Updates happen between features, deliberately, and bump its version.
 5. **Brownfield differs from greenfield only at Phase 1.** Everything else is identical. Greenfield projects MAY revisit Phase 1 if they grow into a brownfield-like state.
-6. **Writer/Reviewer separation in Phase 8.** The agent that wrote the code MUST NOT be the same context that reviews it. In Claude Code, achieve this by starting a fresh session loaded with spec + constitution + diff only — NOT the implementation history.
+6. **Writer/Reviewer separation in Phase 8.** The agent that wrote the code MUST NOT be the same context that reviews it. Default protocol is the **multi-critic panel**: 4 fresh-context sub-agents (security / performance / maintainability / ac-coverage) dispatched in parallel via Task tool, plus a sequential synthesizer. Each critic loads only spec + plan + constitution + diff — never the implementation history. See `references/parallel-agents.md`.
 7. **Max 3 iterations in Phase 9.** If still failing after iteration 3, escalate to a human and consider rejecting back to Plan or Spec.
 8. **One task at a time in Phase 6.** Each task starts fresh: load constitution + plan + that single task. Update `tasks.md` checkboxes as you go so you can resume after a context compaction.
 9. **Research is read-only.** No code, no opinions, no suggestions in Phase 1. File paths + line numbers + a one-sentence "why" for everything found.
@@ -174,3 +194,4 @@ All scripts are Python 3 stdlib only. Run from project root.
 - `references/phases.md` — full description of every phase, when/output/mode/required sections/quality check/anti-patterns
 - `references/templates.md` — copy-paste templates for all 8 artifacts + status dashboard
 - `references/review-system.md` — error classification, iteration protocol, writer/reviewer separation, domain checklists
+- `references/parallel-agents.md` — when and how to dispatch parallel sub-agents (Phases 1, 3, 8) and the safety checklist for the rare cases parallelism is safe in Phase 6

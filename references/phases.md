@@ -46,7 +46,9 @@ The phases form a strict pipeline. Each phase consumes the previous artifact and
 
 **Output:** `.sdd/features/NNN-feature-name/research.md`
 
-**Mode:** Agent autonomous, **read-only**. The agent investigates the codebase and writes a compact report. **Zero opinions. Zero code. Zero suggestions.** Sub-agents may run in parallel: locator, analyzer, pattern-finder.
+**Mode:** Agent autonomous, **read-only**. The agent investigates the codebase and writes a compact report. **Zero opinions. Zero code. Zero suggestions.**
+
+**Parallel by default (v1.1.0+):** dispatch 4 fresh-context sub-agents in a single message — `file-locator`, `pattern-detector`, `dependency-mapper`, `constraint-finder` — each with a disjoint scope. Then a single sequential synthesizer consolidates their outputs into `research.md`. See [`parallel-agents.md`](parallel-agents.md#phase-1--parallel-research) for the full dispatch protocol. For trivial features (single file, no real investigation), a single agent is fine.
 
 **Required sections:**
 - **Summary** — 3–5 sentences of facts, no opinions
@@ -112,6 +114,8 @@ Every claim must include `path/to/file.ext:line` citations.
 **Output:** `.sdd/features/NNN-feature-name/plan.md`
 
 **Mode:** Agent drafts the technical design from the spec + research + constitution. The plan turns spec ACs into a sequenced engineering blueprint.
+
+**Optional `--explore` mode (v1.1.0+):** when the architecture is genuinely ambiguous, dispatch 2–3 sub-agents in parallel to draft alternative plans (conservative / idiomatic / forward-looking biases), then a single synthesizer picks one (or hybridizes) and documents the rejected alternatives under "Alternatives Considered". See [`parallel-agents.md`](parallel-agents.md#phase-3--parallel-plan-exploration-optional---explore-mode). Skip `--explore` for trivial features or when the constitution dictates the answer.
 
 **Required sections:**
 - **Architecture Approach** — how this fits the existing system, with a Mermaid diagram if helpful
@@ -204,6 +208,8 @@ Every claim must include `path/to/file.ext:line` citations.
 
 **Mode:** Agent implements one task at a time. **Each task starts with a fresh context** loaded with: constitution.md + plan.md + that single task block. NOT the implementation history of previous tasks.
 
+**Sequential is the default and almost always correct.** Parallel implementation is allowed **only** for purely mechanical refactors that operate on disjoint files with zero shared state (e.g., codemods, mass renames, header insertion). See the safety checklist in [`parallel-agents.md`](parallel-agents.md#phase-6--when-and-only-when-parallel-implementation-is-safe). When in doubt: sequential. The few minutes saved in parallel will cost you an hour of "which agent broke the build?".
+
 **Per-task loop:**
 1. Load constitution + plan + current task only
 2. Write tests first (TDD when feasible)
@@ -260,7 +266,7 @@ Every claim must include `path/to/file.ext:line` citations.
 
 **Output:** `.sdd/features/NNN-feature-name/review.md`
 
-**Mode:** **Fresh-context critic agent** + human. The reviewer agent MUST be a different context session than the writer. In Claude Code: start a new conversation, load only `spec.md`, `plan.md`, `constitution.md`, and the diff. Do NOT load the implementation conversation.
+**Mode:** **Multi-critic panel + human** (v1.1.0+). The reviewer agents MUST be different context sessions than the writer. Default protocol: dispatch **4 fresh-context sub-agents in parallel** in a single message — `security-critic`, `performance-critic`, `maintainability-critic`, `ac-coverage-critic` — each loaded with `spec.md` + `plan.md` + `constitution.md` + the diff (NOT the implementation history). Then a 5th sequential **review-synthesizer** agent consolidates the 4 outputs into the unified `review.md`. See [`parallel-agents.md`](parallel-agents.md#phase-8--multi-critic-review-panel) for the dispatch protocol. For trivial features, a single fresh-context critic is acceptable — the writer/reviewer separation rule still holds.
 
 **Required sections:**
 - **Acceptance Criteria Validation** — table mapping each AC to ✅/❌ + evidence (file:line or test name)
