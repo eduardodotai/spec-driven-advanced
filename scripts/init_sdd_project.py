@@ -2,9 +2,10 @@
 """Bootstrap a `.sdd/` directory at the project root.
 
 Creates:
-  .sdd/constitution.md   — stub with all 9 article headers
-  .sdd/changelog.md      — empty changelog stub
-  .sdd/features/         — empty directory with .gitkeep
+  .sdd/constitution.md     — stub with all 9 article headers
+  .sdd/changelog.md        — empty changelog stub
+  .sdd/features/           — empty directory with .gitkeep
+  .sdd/product-vision.md   — only if --with-vision-stub is passed (v1.2.0+)
 
 Exit codes:
   0   success
@@ -60,6 +61,39 @@ CHANGELOG_STUB = """# Changelog
 All shipped features will be tracked here.
 """
 
+VISION_STUB = """# Product Vision — [TO BE FILLED]
+> Created: [TO BE FILLED] | Status: Draft | Version: 0.1.0
+
+## Overview
+[TO BE FILLED — one-paragraph elevator pitch]
+
+## Problem Statement
+[TO BE FILLED — what problem, who has it, why now]
+
+## Goals
+- [TO BE FILLED]
+
+## Target Users
+| Role | Description | Capabilities |
+|------|-------------|--------------|
+| [TO BE FILLED] | | |
+
+## Core Capabilities
+- [TO BE FILLED]
+
+## Technical Considerations
+- [TO BE FILLED]
+
+## Tech Stack Preference
+- [TO BE FILLED]
+
+## Out of Scope
+- [TO BE FILLED]
+
+## Success Metrics
+- [TO BE FILLED]
+"""
+
 
 @dataclass
 class Result:
@@ -69,12 +103,13 @@ class Result:
     exit_code: int = 0
 
 
-def init_project(path: Path, force: bool) -> Result:
+def init_project(path: Path, force: bool, with_vision_stub: bool) -> Result:
     sdd_dir = path / ".sdd"
     constitution = sdd_dir / "constitution.md"
     changelog = sdd_dir / "changelog.md"
     features_dir = sdd_dir / "features"
     gitkeep = features_dir / ".gitkeep"
+    vision = sdd_dir / "product-vision.md"
 
     if sdd_dir.exists() and not force:
         return Result(
@@ -91,15 +126,21 @@ def init_project(path: Path, force: bool) -> Result:
         changelog.write_text(CHANGELOG_STUB, encoding="utf-8")
         gitkeep.write_text("", encoding="utf-8")
 
+        created = [
+            str(constitution),
+            str(changelog),
+            str(features_dir),
+            str(gitkeep),
+        ]
+
+        if with_vision_stub:
+            vision.write_text(VISION_STUB, encoding="utf-8")
+            created.insert(0, str(vision))
+
         return Result(
             ok=True,
             message=f"Initialized .sdd/ at {sdd_dir}",
-            created=[
-                str(constitution),
-                str(changelog),
-                str(features_dir),
-                str(gitkeep),
-            ],
+            created=created,
         )
     except OSError as exc:
         return Result(
@@ -109,7 +150,7 @@ def init_project(path: Path, force: bool) -> Result:
         )
 
 
-def self_verify(path: Path) -> Result:
+def self_verify(path: Path, with_vision_stub: bool) -> Result:
     """Confirm all expected files exist after init."""
     required = [
         path / ".sdd" / "constitution.md",
@@ -117,6 +158,8 @@ def self_verify(path: Path) -> Result:
         path / ".sdd" / "features",
         path / ".sdd" / "features" / ".gitkeep",
     ]
+    if with_vision_stub:
+        required.append(path / ".sdd" / "product-vision.md")
     missing = [str(p) for p in required if not p.exists()]
     if missing:
         return Result(
@@ -139,6 +182,11 @@ def main() -> int:
         action="store_true",
         help="Overwrite an existing .sdd/ directory",
     )
+    parser.add_argument(
+        "--with-vision-stub",
+        action="store_true",
+        help="Also create .sdd/product-vision.md as a stub (greenfield, v1.2.0+)",
+    )
     args = parser.parse_args()
 
     root = Path(args.path).resolve()
@@ -146,7 +194,7 @@ def main() -> int:
         print(f"ERROR: path does not exist: {root}", file=sys.stderr)
         return 1
 
-    result = init_project(root, args.force)
+    result = init_project(root, args.force, args.with_vision_stub)
     if not result.ok:
         print(f"ERROR: {result.message}", file=sys.stderr)
         return result.exit_code
@@ -155,7 +203,7 @@ def main() -> int:
     for path in result.created:
         print(f"  + {path}")
 
-    verify = self_verify(root)
+    verify = self_verify(root, args.with_vision_stub)
     if not verify.ok:
         print(f"ERROR: {verify.message}", file=sys.stderr)
         return verify.exit_code
@@ -163,8 +211,14 @@ def main() -> int:
     print(verify.message)
     print()
     print("Next steps:")
-    print("  1. Edit .sdd/constitution.md and replace every [TO BE FILLED]")
-    print("  2. Run: python scripts/new_feature.py <feature-name>")
+    if args.with_vision_stub:
+        print("  1. Run /sdd-vision to fill .sdd/product-vision.md (bilingual interview)")
+        print("  2. Then /sdd-init to fill .sdd/constitution.md")
+        print("  3. Then python scripts/new_feature.py <feature-name>")
+    else:
+        print("  1. Edit .sdd/constitution.md and replace every [TO BE FILLED]")
+        print("     (or run /sdd-init for an interactive interview)")
+        print("  2. Run: python scripts/new_feature.py <feature-name>")
     return 0
 
 

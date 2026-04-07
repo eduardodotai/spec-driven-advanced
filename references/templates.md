@@ -4,6 +4,72 @@ Copy-paste templates for every artifact in the SDD+RPI workflow. Replace bracket
 
 ---
 
+## 0. product-vision.md (Phase -1, added in v1.2.0)
+
+```markdown
+# Product Vision — [Product Name]
+> Created: YYYY-MM-DD | Status: Approved | Version: 1.0.0
+> Owner: [name]
+
+## Overview
+[One paragraph: what the product does and its core purpose. Should fit on a sticky note.]
+
+## Problem Statement
+[What problem does this solve? Who has it? Why solve it now? What are existing alternatives and why are they insufficient?]
+
+## Goals
+1. [Measurable outcome — e.g., "Reduce time-to-publish from 2 hours to 5 minutes"]
+2. [Measurable outcome — e.g., "Reach 1000 active users in the first 3 months"]
+3. [Measurable outcome]
+
+## Target Users
+| Role | Description | Capabilities |
+|------|-------------|--------------|
+| [e.g., Content Creator] | [Brief description] | [What this user can do in the product] |
+| [e.g., Admin] | [Brief description] | [What this user can do in the product] |
+
+## Core Capabilities
+The product enables users to:
+1. [e.g., Create and organize notes in folders]
+2. [e.g., Sync notes across devices in real time]
+3. [e.g., Share notes via public links]
+4. [...up to 10 high-level capabilities, no implementation details]
+
+## Technical Considerations
+- **Authentication:** [e.g., Email + OAuth (Google, GitHub)]
+- **Privacy / Security:** [e.g., End-to-end encryption for note bodies; LGPD compliance]
+- **Scale:** [e.g., Designed for 10k concurrent users initially]
+- **Performance budget:** [e.g., p95 page load < 2.5s]
+- **Regulatory:** [e.g., GDPR / LGPD / HIPAA — or "none"]
+- **Other constraints:** [e.g., Must work offline; must export to Markdown]
+
+## Tech Stack Preference
+- **Backend:** [e.g., Next.js API routes / Node + Hono / Python FastAPI]
+- **Frontend:** [e.g., Next.js 15 App Router + React]
+- **Database:** [e.g., PostgreSQL + Prisma]
+- **Infra / Hosting:** [e.g., Vercel + Neon]
+- **Other:** [e.g., Auth via Clerk; payments via Stripe]
+
+> Exact versions and lock decisions belong in `constitution.md` (Phase 0).
+
+## Out of Scope
+1. [Explicitly NOT building — e.g., "No native mobile app in v1, web-only"]
+2. [Explicitly NOT building — e.g., "No team / collaboration features in v1"]
+3. [Explicitly NOT building — e.g., "No AI features in v1"]
+
+## Success Metrics
+- [How we know we are achieving Goal 1 — measurable]
+- [How we know we are achieving Goal 2 — measurable]
+- [...]
+
+---
+
+## Notes
+[Optional: relevant analogies ("it's like X but for Y"), prior art, constraints from stakeholders, or anything else the agent should know about the product context.]
+```
+
+---
+
 ## 1. constitution.md
 
 ```markdown

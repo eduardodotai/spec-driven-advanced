@@ -21,10 +21,11 @@ It combines two methodologies:
 
 The skill enforces the **writer/reviewer separation rule**: the agent that writes code is never the same context that reviews it. This eliminates confirmation bias and is the single biggest quality lever in AI-assisted development.
 
-## The 10 phases
+## The phases
 
 | # | Phase | When | Output | Gate |
 |---|-------|------|--------|------|
+| -1 | **Vision** *(v1.2.0)* | Greenfield init | `product-vision.md` | — |
 | 0 | Constitution | Once per project | `constitution.md` | — |
 | 1 | Research | Brownfield only | `research.md` | — |
 | 2 | Spec | Every feature | `spec.md` | — |
@@ -71,7 +72,8 @@ You can also invoke the slash commands directly:
 
 | Command | What it does |
 |---------|--------------|
-| `/sdd-init` | Bootstrap `.sdd/` and walk through the constitution interview |
+| `/sdd-vision` | **(v1.2.0)** Bilingual interview (PT→EN) — produces `product-vision.md`. Greenfield only. |
+| `/sdd-init [--with-vision-stub] [--guided]` | Bootstrap `.sdd/` and walk through the constitution interview |
 | `/sdd-research <feature>` | Brownfield codebase investigation (no code, no opinions) |
 | `/sdd-spec <feature>` | Draft the spec (problem, goals, ACs, edge cases) |
 | `/sdd-plan <feature>` | Draft the technical plan |
@@ -89,6 +91,7 @@ You can also invoke the slash commands directly:
 ```
 your-project/
 └── .sdd/
+    ├── product-vision.md        # Phase -1 — product story (v1.2.0)
     ├── constitution.md          # permanent project governance
     ├── changelog.md             # running log of shipped features
     └── features/
@@ -102,6 +105,20 @@ your-project/
             ├── review.md        # Phase 8 — Human Gate #2
             └── ship.md          # Phase 10
 ```
+
+## Product Vision + Guided Mode (v1.2.0)
+
+**Phase -1 (Vision)** captures the high-level product story before the engineering rigor kicks in. It runs a **bilingual interview** — questions in the user's native language (PT-BR by default), document written in English. The Constitution and every feature spec downstream load this file as context, so the product story is never re-litigated.
+
+**Guided mode** is an optional accessibility layer for non-engineers (or for engineers wanting lower friction on side projects). Activate with `--guided` on any interactive slash command. It translates technical jargon into plain-language questions and infers smart defaults from product type — but the output artifacts and quality bars are **identical** to default mode.
+
+| Default mode | Guided mode (PT-BR) |
+|---|---|
+| "What's your error handling strategy?" | "Como o sistema deve reagir quando algo dá errado?" |
+| "Acceptance Criteria (testable)" | "Me dá 3 exemplos do que o usuário deveria conseguir fazer" |
+| "Forbidden patterns?" | "Tem alguma coisa que você NÃO quer ver no código?" |
+
+A 12-question Constitution interview can collapse to ~3 questions when guided mode + product vision are both active. See [`references/vision.md`](references/vision.md) and [`references/guided-mode.md`](references/guided-mode.md).
 
 ## Parallelism strategy (v1.1.0)
 
@@ -177,10 +194,11 @@ Combina duas metodologias:
 
 A skill impõe a **regra de separação escritor/revisor**: o agente que escreve código nunca é o mesmo contexto que o revisa. Isso elimina viés de confirmação e é a maior alavanca de qualidade em desenvolvimento assistido por IA.
 
-### As 10 fases
+### As fases
 
 | # | Fase | Quando | Output | Portão |
 |---|------|--------|--------|--------|
+| -1 | **Vision** *(v1.2.0)* | Init de projeto novo | `product-vision.md` | — |
 | 0 | Constitution | Uma vez por projeto | `constitution.md` | — |
 | 1 | Research | Apenas brownfield | `research.md` | — |
 | 2 | Spec | Toda feature | `spec.md` | — |

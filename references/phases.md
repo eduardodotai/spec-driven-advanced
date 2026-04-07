@@ -1,9 +1,48 @@
-# SDD+RPI — The 10 Phases in Depth
+# SDD+RPI — The 10 Phases in Depth (now 11 with Phase -1)
 
 This is the deep reference for `SKILL.md`. Each phase entry contains:
 **When** · **Output** · **Mode** · **Required sections** · **Quality check** · **Anti-patterns**.
 
 The phases form a strict pipeline. Each phase consumes the previous artifact and produces a new one. The two **Human Gates** (Phase 4 and Phase 8) are binary: approve, iterate, or reject.
+
+> **Guided mode (v1.2.0+):** every interactive phase (-1, 0, 2, 3) accepts the optional `--guided` flag. When active, the agent translates technical jargon into plain-language questions, infers smart defaults from product type, and accepts vague answers. The output artifacts and quality bars are unchanged. See [`guided-mode.md`](guided-mode.md) for the full translation table and activation rules.
+
+---
+
+## Phase -1 — PRODUCT VISION (Foundation Before Foundation)
+
+**When:** Greenfield projects only, before Phase 0. Optional but recommended for brownfield (run once to reverse-engineer the vision from the codebase + product owner interview).
+
+**Output:** `.sdd/product-vision.md`
+
+**Mode:** **Bilingual interactive interview** — agent asks questions in PT-BR (user's native language), writes the artifact in EN. The Constitution and every feature spec downstream will load this file as context, so the product story is never re-litigated.
+
+**Required sections:**
+- **Overview** — one paragraph elevator pitch
+- **Problem Statement** — what, who, why now, alternatives
+- **Goals** — 3–5 measurable outcomes
+- **Target Users** — table of role / description / capabilities
+- **Core Capabilities** — 5–10 high-level features (verbs, not implementation)
+- **Technical Considerations** — auth, privacy, scale, regulatory, perf
+- **Tech Stack Preference** — high-level only; exact versions go in Constitution
+- **Out of Scope** — at least 3 explicit non-goals
+- **Success Metrics** — how we know it's working
+
+**Quality check:**
+- A stranger reads it in under 5 minutes and understands the product
+- Goals use numbers, not adjectives
+- At least 3 out-of-scope items
+- Tech stack lists at least language + framework
+- Constitution can directly reference this file
+
+**Anti-patterns:**
+- Vision contains feature-level details (move to feature spec)
+- Vision changes per feature (it's stable; update only between major pivots)
+- Vague goals ("make it good") — use measurable ones
+- Skipping it because "the team knows" — agents do not know
+- Missing Out of Scope section — invites scope creep
+
+> Read [`vision.md`](vision.md) for the full bilingual question bank, output protocol, and brownfield reverse-engineering flow.
 
 ---
 
@@ -14,6 +53,10 @@ The phases form a strict pipeline. Each phase consumes the previous artifact and
 **Output:** `.sdd/constitution.md`
 
 **Mode:** Interactive interview. The agent asks the user about standards and writes the document collaboratively. For brownfield projects, the agent first analyzes the existing codebase to *infer* conventions, then presents findings to the user for confirmation.
+
+**Vision-aware (v1.2.0+):** if `.sdd/product-vision.md` exists, the agent loads it first and **pre-fills** Constitution articles from the vision (especially Article 2 Tech Stack and Article 8 Security). Many questions become confirmations instead of open prompts.
+
+**Guided mode (v1.2.0+):** with `--guided`, jargon is translated and smart defaults by product type are applied. A 12-question Constitution interview can collapse to ~3 questions when guided mode + vision are both active. See [`guided-mode.md`](guided-mode.md).
 
 **Required sections (9 articles):**
 1. Immutable Principles — non-negotiable rules
@@ -83,6 +126,10 @@ Every claim must include `path/to/file.ext:line` citations.
 
 **Mode:** Collaborative. Agent drafts, human iterates. The spec is technology-agnostic — it says WHAT to build, never HOW.
 
+**Vision-aware (v1.2.0+):** the agent loads `.sdd/product-vision.md` first so the spec is anchored in the product story.
+
+**Guided mode (v1.2.0+):** with `--guided`, "Acceptance Criteria" becomes "me dá 3 exemplos do que o usuário deveria conseguir fazer", "Edge Cases" becomes "o que pode dar errado?", and so on. Translation is in [`guided-mode.md`](guided-mode.md). The output `spec.md` is identical to default mode.
+
 **Required sections:**
 - **Problem Statement** — what problem, for whom, why now
 - **Goals** — measurable outcomes (numbers when possible)
@@ -114,6 +161,8 @@ Every claim must include `path/to/file.ext:line` citations.
 **Output:** `.sdd/features/NNN-feature-name/plan.md`
 
 **Mode:** Agent drafts the technical design from the spec + research + constitution. The plan turns spec ACs into a sequenced engineering blueprint.
+
+**Guided mode (v1.2.0+):** with `--guided`, the agent proposes data models, API contracts, implementation order, and rollback plan **as suggestions** instead of asking the user to design them. The user confirms or tweaks. Constitution Compliance check runs silently and only surfaces violations. See [`guided-mode.md`](guided-mode.md).
 
 **Optional `--explore` mode (v1.1.0+):** when the architecture is genuinely ambiguous, dispatch 2–3 sub-agents in parallel to draft alternative plans (conservative / idiomatic / forward-looking biases), then a single synthesizer picks one (or hybridizes) and documents the rejected alternatives under "Alternatives Considered". See [`parallel-agents.md`](parallel-agents.md#phase-3--parallel-plan-exploration-optional---explore-mode). Skip `--explore` for trivial features or when the constitution dictates the answer.
 

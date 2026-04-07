@@ -24,9 +24,9 @@ allowed-tools:
   - Bash
   - Task
 metadata:
-  version: 1.1.0
+  version: 1.2.0
   author: eduardodotai
-  domains: [meta-skill, software-engineering, sdd, rpi, workflow, planning, agentic, parallel-agents]
+  domains: [meta-skill, software-engineering, sdd, rpi, workflow, planning, agentic, parallel-agents, product-vision, guided-mode]
   type: workflow-orchestrator
 ---
 
@@ -41,21 +41,23 @@ A production-grade workflow that fuses **Spec-Driven Development** (specs are th
 
 ## Quick Start
 
-When invoked, ask the user these three questions in order:
+When invoked, ask the user these questions in order:
 
 1. **Greenfield or brownfield?** New project from scratch, or existing codebase?
-   - Greenfield → skip Phase 1 (Research), go Constitution → Spec.
-   - Brownfield → Phase 1 (Research) is **mandatory**.
+   - Greenfield → run Phase -1 (Vision) → Phase 0 (Constitution) → Phase 2 (Spec). Skip Phase 1 (Research).
+   - Brownfield → Phase 1 (Research) is **mandatory**. Phase -1 (Vision) is optional but recommended if no vision doc exists.
 2. **What do you want to build or change?** One-paragraph problem statement.
-3. **Do you already have a `.sdd/constitution.md`?** If yes, load it. If no, run Phase 0 first.
+3. **Do you already have `.sdd/product-vision.md` and `.sdd/constitution.md`?** Load whichever exist; run the missing phases.
+4. **Technical comfort?** Engineer (default) or non-engineer / want lower friction (`--guided` mode). Guided mode translates jargon and infers smart defaults — same output quality, friendlier interview.
 
 Then run `scripts/init_sdd_project.py` (if no `.sdd/` exists) and `scripts/new_feature.py <name>` for the new feature scaffold.
 
-## The 10 Phases (Compact Reference)
+## The Phases (Compact Reference)
 
 | # | Phase | When | Output | Mode | Gate |
 |---|-------|------|--------|------|------|
-| 0 | **Constitution** | Project init, one time | `.sdd/constitution.md` | Interactive interview | — |
+| -1 | **Vision** | Greenfield init, before Constitution | `.sdd/product-vision.md` | Bilingual interview (PT→EN) | — |
+| 0 | **Constitution** | Project init, one time | `.sdd/constitution.md` | Interactive interview, vision-aware | — |
 | 1 | **Research** | Brownfield only, before each feature | `research.md` | Agent autonomous (read-only) | — |
 | 2 | **Spec** | After Research (or Constitution if greenfield) | `spec.md` | Collaborative draft | — |
 | 3 | **Plan** | After Spec | `plan.md` | Agent drafts | — |
@@ -69,24 +71,29 @@ Then run `scripts/init_sdd_project.py` (if no `.sdd/` exists) and `scripts/new_f
 
 > Read `references/phases.md` for the deep description of each phase, and `references/templates.md` for the artifact templates.
 
-## Routing Logic (Phase 0 Branching)
+## Routing Logic (Phases -1 → 0 Branching)
 
 ```
 on_invoke:
   if no .sdd/ at project root:
-    → run scripts/init_sdd_project.py
-    → run Phase 0 (Constitution interview)
-  else:
-    → load .sdd/constitution.md
+    → run scripts/init_sdd_project.py [--with-vision-stub if greenfield]
 
   ask: greenfield or brownfield?
 
   if greenfield:
+    if no .sdd/product-vision.md (or it's a stub):
+      → run Phase -1 (Vision interview)  ← bilingual, may use --guided
+    if no .sdd/constitution.md (or it's a stub):
+      → run Phase 0 (Constitution interview), pre-filled from product-vision.md
     skip Phase 1 (Research)
     next_phase = Spec
 
   if brownfield:
-    Phase 1 (Research) is MANDATORY
+    if no .sdd/product-vision.md:
+      → offer Phase -1 (Vision) — optional, agent can reverse-engineer from codebase
+    if no .sdd/constitution.md:
+      → run Phase 0 — agent infers from existing codebase, presents for confirmation
+    Phase 1 (Research) is MANDATORY for every feature
     next_phase = Research
 
   if user says "I'm in the middle of feature NNN":
@@ -101,12 +108,13 @@ Never auto-skip a phase that produced no artifact unless the project is greenfie
 
 ```
 .sdd/
+├── product-vision.md           # Phase -1 — product story (greenfield) — v1.2.0+
 ├── constitution.md             # Phase 0 — permanent project governance
 ├── changelog.md                # Running log of all shipped features
 └── features/
     └── NNN-feature-name/       # one folder per feature
         ├── research.md         # Phase 1 (brownfield only)
-        ├── spec.md             # Phase 2
+        ├── spec.md             # Phase 2 (loads product-vision.md as context)
         ├── plan.md             # Phase 3
         ├── plan-review.md      # Phase 4 — Human Gate #1
         ├── tasks.md            # Phase 5
@@ -121,7 +129,8 @@ When running inside Claude Code, expose these commands. Each one loads only the 
 
 | Command | Phase | Purpose |
 |---------|-------|---------|
-| `/sdd-init` | 0 | Bootstrap `.sdd/` and walk the user through the constitution interview |
+| `/sdd-vision` | -1 | Bilingual interview (PT→EN) — produces `product-vision.md`. Greenfield only. |
+| `/sdd-init [--with-vision-stub] [--guided]` | 0 | Bootstrap `.sdd/` and walk the user through the constitution interview |
 | `/sdd-research <feature>` | 1 | Brownfield codebase investigation, no code, no opinions |
 | `/sdd-spec <feature>` | 2 | Draft the spec (problem, goals, ACs, edge cases) |
 | `/sdd-plan <feature>` | 3 | Draft the technical plan (architecture, data, contracts) |
@@ -163,6 +172,29 @@ Parallelize **analysis**, not **execution**. The bottleneck of AI-assisted engin
 
 > Read `references/parallel-agents.md` for the full dispatch protocol, sub-agent briefing templates, and Phase 6 safety checklist.
 
+## Guided Mode (Accessibility — v1.2.0)
+
+The interactive phases (-1, 0, 2, 3) accept an optional `--guided` flag that translates technical jargon into plain-language questions and infers smart defaults from product type. The output artifacts and quality bars are **identical** to default mode — only the conversation is friendlier.
+
+| Activation | Effect |
+|---|---|
+| `/sdd-init --guided` (or any other slash command) | Enables guided mode for that phase |
+| `guided_mode: true` in `.sdd/constitution.md` frontmatter | Project-wide persistent activation |
+| Auto-detect: 2+ vague answers in a row | Agent offers to switch to guided mode |
+
+**Examples of translation:**
+
+| Default mode | Guided mode (PT-BR) |
+|---|---|
+| "What's your error handling strategy?" | "Como o sistema deve reagir quando algo dá errado?" |
+| "Acceptance Criteria (testable)" | "Me dá 3 exemplos do que o usuário deveria conseguir fazer no fim" |
+| "Forbidden patterns?" | "Tem alguma coisa que você NÃO quer ver no código? Pode pular se não souber." |
+| "Data model entities" | "Que tipos de informação o sistema precisa guardar?" |
+
+When activated, guided mode also adds a **"In plain English"** banner at the top of every artifact so non-technical stakeholders can understand the work without reading the full structured doc.
+
+> Read `references/guided-mode.md` for the full translation table, smart defaults by product type, and auto-detection rules.
+
 ## Critical Rules
 
 1. **Never skip phases.** Each phase consumes artifacts the previous phase produced. Skipping = vibe coding with extra steps.
@@ -192,6 +224,8 @@ Parallelize **analysis**, not **execution**. The bottleneck of AI-assisted engin
 ## Deeper References (lazy load)
 
 - `references/phases.md` — full description of every phase, when/output/mode/required sections/quality check/anti-patterns
-- `references/templates.md` — copy-paste templates for all 8 artifacts + status dashboard
+- `references/templates.md` — copy-paste templates for all 9 artifacts (incl. product-vision.md) + status dashboard
 - `references/review-system.md` — error classification, iteration protocol, writer/reviewer separation, domain checklists
 - `references/parallel-agents.md` — when and how to dispatch parallel sub-agents (Phases 1, 3, 8) and the safety checklist for the rare cases parallelism is safe in Phase 6
+- `references/vision.md` — Phase -1 deep doc: bilingual question bank, output protocol, brownfield reverse-engineering
+- `references/guided-mode.md` — `--guided` flag: jargon translation table, smart defaults by product type, auto-detection rules

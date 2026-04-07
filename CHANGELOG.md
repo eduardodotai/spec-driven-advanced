@@ -5,6 +5,31 @@ All notable changes to `spec-driven-advanced` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-04-07
+
+### Added
+- **Phase -1: PRODUCT VISION** — a new phase that runs *before* the Constitution on greenfield projects. Captures the high-level product story (overview, problem, goals, target users, core capabilities, tech stack preference, out-of-scope, success metrics) so every downstream phase has the "why" and "for whom" available without re-litigation.
+- **`/sdd-vision`** slash command — bilingual interview that asks questions in PT-BR (user's native language) and writes the artifact in English. Optional for brownfield (can reverse-engineer from codebase + interview).
+- **`references/vision.md`** — full Phase -1 deep doc: bilingual question bank (12 questions in 6 blocks), output protocol, brownfield reverse-engineering flow.
+- **Guided Mode (`--guided` flag)** — accessibility layer for non-engineers (or engineers wanting lower friction on side projects). Translates technical jargon into plain-language questions, infers smart defaults from product type, accepts vague answers. Available on `/sdd-init`, `/sdd-vision`, `/sdd-spec`, `/sdd-plan`. The output artifacts and quality bars are **identical** to default mode — only the conversation is friendlier.
+- **`references/guided-mode.md`** — full translation table for Phases 0/2/3, smart defaults by product type (web app, mobile, CLI, API, prototype), auto-detection rules (2+ vague answers → offer to switch).
+- **product-vision.md template** added to `references/templates.md`.
+- **`scripts/init_sdd_project.py --with-vision-stub`** — new flag that also creates a `.sdd/product-vision.md` stub. Self-verification updated.
+- **Plain English summary banner** — when guided mode is active, every artifact gets a "In plain English:" callout at the top so non-technical stakeholders can review without reading the structured doc.
+
+### Changed
+- **Phase 0 (Constitution)** is now **vision-aware**: if `.sdd/product-vision.md` exists, the agent loads it first and pre-fills Constitution articles (especially Article 2 Tech Stack and Article 8 Security). A 12-question Constitution interview can collapse to ~3 questions when guided mode + vision are both active.
+- **Phase 2 (Spec)** loads `.sdd/product-vision.md` automatically so feature specs stay anchored in the product story.
+- **Routing logic** in SKILL.md updated: greenfield → Phase -1 → Phase 0 → Phase 2; brownfield → Phase -1 (optional) → Phase 0 → Phase 1 → Phase 2.
+- **Quick Start** in SKILL.md now includes a 4th question about technical comfort (engineer vs non-engineer / `--guided`).
+- `metadata.version` bumped to `1.2.0`.
+- `metadata.domains` adds `product-vision` and `guided-mode`.
+
+### Notes
+- This is an additive release. Existing `.sdd/` projects from v1.0.0 / v1.1.0 continue to work — Phase -1 and `--guided` are opt-in.
+- `scripts/new_feature.py` and `scripts/validate_phase.py` are unchanged. Phase -1 is interactive (run by the agent), so it does not need a script — only the optional stub creator.
+- Audit score from v1.1.0 (92/100) is preserved; the additions follow the same patterns (lean SKILL.md, lazy-loaded references, no jargon escaping into the main file).
+
 ## [1.1.0] — 2026-04-06
 
 ### Added
@@ -39,5 +64,6 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Bilingual `README.md` (English + Português).
 - `LICENSE` (MIT), `.gitignore`, `.skillignore`.
 
+[1.2.0]: https://github.com/eduardodotai/spec-driven-advanced/releases/tag/v1.2.0
 [1.1.0]: https://github.com/eduardodotai/spec-driven-advanced/releases/tag/v1.1.0
 [1.0.0]: https://github.com/eduardodotai/spec-driven-advanced/releases/tag/v1.0.0
