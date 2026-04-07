@@ -13,10 +13,34 @@
 
 ## Mode
 
-**Bilingual interactive interview.** The agent asks questions in the user's native language (Portuguese by default for this user) but writes the document in English. This is a deliberate split:
+**Multilingual interactive interview.** The agent asks the user **which language they want to use for the interview** (English as default), then adapts every question to that language. The final document is **always written in English**, regardless of the interview language. This is a deliberate split:
 
-- **Questions in PT-BR** → low cognitive load, the user thinks naturally
+- **Questions in the user's chosen language** → low cognitive load, the user thinks naturally
 - **Document in EN** → maximum reach for code comments, future contributors, AI agents that work better in English
+
+### Language-selection protocol (Q0 — asked before any other question)
+
+The agent's first message in `/sdd-vision` is **always in English**:
+
+> "Which language would you like to use for this interview? (English / Português / Español / Français / Italiano / Deutsch / … — I'll adapt. The final `product-vision.md` will always be written in English.)"
+
+Rules:
+
+| User response | Agent behavior |
+|---|---|
+| Clear language ("Português", "Spanish", "fr") | Switch to that language for all subsequent questions |
+| "default" / silence / skip | Use **English** |
+| Language the agent cannot confidently handle | Offer English or the closest supported one |
+| Mid-interview switch ("can we continue in English?") | Switch immediately, preserve all answers |
+
+The agent records the chosen language in the output document's frontmatter as `interview_language: <code>` for auditability. Example:
+
+```yaml
+---
+interview_language: pt-BR
+document_language: en
+---
+```
 
 ## Required sections
 
@@ -52,59 +76,80 @@
 
 ---
 
-## Bilingual question bank (PT-BR → EN doc)
+## Canonical question bank (EN)
 
-The agent runs this interview interactively. Questions are asked in PT-BR; answers are translated and structured into the EN document at the end.
+The agent runs this interview interactively in the user's chosen language. The canonical questions below are in **English** — the agent translates them on the fly to the selected language while preserving meaning, and always maps answers back to the same structured document sections.
 
-### Bloco 1 — Problema e Visão
+### Block 1 — Problem & Vision
 
-1. **"Vamos começar pelo problema: que problema você quer resolver, e pra quem ele dói hoje?"**
+1. **"Let's start with the problem: what problem do you want to solve, and who feels it today?"**
    → Maps to: Problem Statement
 
-2. **"Como esse problema é resolvido hoje? Existe alguma alternativa? Se sim, por que ela não é boa o suficiente?"**
+2. **"How is this problem solved today? Are there alternatives? If so, why aren't they good enough?"**
    → Maps to: Problem Statement (context)
 
-3. **"Em uma frase só, o que esse produto faz?"**
+3. **"In one sentence: what does this product do?"**
    → Maps to: Overview (1-line elevator pitch)
 
-4. **"Por que agora? O que mudou no mundo (ou na sua vida) que faz esse o momento certo pra construir isso?"**
+4. **"Why now? What changed in the world (or in your life) that makes this the right moment to build it?"**
    → Maps to: Problem Statement (urgency)
 
-### Bloco 2 — Objetivos e Sucesso
+### Block 2 — Goals & Success
 
-5. **"Quais são os 3 a 5 objetivos principais desse produto? Tenta usar números quando der (ex: 'reduzir o tempo de X em 50%', '1000 usuários no primeiro mês')."**
+5. **"What are the 3 to 5 main goals of this product? Try to use numbers when possible (e.g., 'reduce time X by 50%', '1000 users in the first month')."**
    → Maps to: Goals
 
-6. **"Daqui a 6 meses, como vamos saber se esse produto está dando certo? O que estaríamos medindo?"**
+6. **"Six months from now, how will we know this product is succeeding? What would we be measuring?"**
    → Maps to: Success Metrics
 
-### Bloco 3 — Usuários
+### Block 3 — Users
 
-7. **"Quem vai usar isso? Liste os tipos de usuário (pode ser 1, 2, 3...). Pra cada tipo, me diz: o que ele precisa fazer no produto?"**
+7. **"Who will use this? List the user types (can be 1, 2, 3...). For each type, tell me: what do they need to do in the product?"**
    → Maps to: Target Users (table)
 
-### Bloco 4 — Capacidades
+### Block 4 — Capabilities
 
-8. **"Quais são as 5 a 10 capacidades centrais do produto? Pensa em verbos: 'criar conta', 'enviar mensagem', 'gerar relatório', 'pagar', 'buscar', etc."**
+8. **"What are the 5 to 10 core capabilities of the product? Think in verbs: 'create account', 'send message', 'generate report', 'pay', 'search', etc."**
    → Maps to: Core Capabilities
 
-### Bloco 5 — Restrições Técnicas
+### Block 5 — Technical Constraints
 
-9. **"Tem alguma restrição técnica importante? Por exemplo: precisa funcionar offline? Lida com dados sensíveis (saúde, financeiro)? Espera quanto de escala (10, 1000, 100k usuários)? Tem requisito de compliance (LGPD, GDPR, HIPAA)?"**
+9. **"Are there any important technical constraints? For example: does it need to work offline? Does it handle sensitive data (health, financial)? What scale do you expect (10, 1000, 100k users)? Any compliance requirements (GDPR, HIPAA, LGPD)?"**
    → Maps to: Technical Considerations
 
-10. **"Qual sua preferência de stack? Linguagem, framework, banco. Se você não tem ideia ou quer minha sugestão, me diz o tipo de produto (web, mobile, CLI, API) e eu sugiro um stack baseado nas melhores práticas."**
+10. **"What's your stack preference? Language, framework, database. If you're unsure or want my suggestion, tell me the product type (web, mobile, CLI, API) and I'll suggest a stack based on best practices."**
     → Maps to: Tech Stack Preference
 
-### Bloco 6 — Limites
+### Block 6 — Limits
 
-11. **"O que esse produto explicitamente NÃO faz? Liste pelo menos 3 coisas que estão fora do escopo. Isso é tão importante quanto o que ele faz — evita que o escopo cresça sem controle."**
+11. **"What does this product explicitly NOT do? List at least 3 things that are out of scope. This is as important as what it does — it prevents scope creep."**
     → Maps to: Out of Scope
 
-### Bloco final — Confirmação
+### Final block — Confirmation
 
-12. **"Antes de eu escrever o documento: alguma coisa importante que eu não perguntei? Algum contexto, alguma decisão já tomada, alguma analogia ('é tipo o X mas pra Y')?"**
+12. **"Before I write the document: anything important I didn't ask about? Any context, any decisions already made, any analogies ('it's like X but for Y')?"**
     → Free-form: agent incorporates into Overview / Problem Statement
+
+---
+
+## Illustrative translation — PT-BR
+
+For reference, here is how Block 1 question 1 looks when the user selects Portuguese. The agent adapts all 12 questions the same way:
+
+> **"Vamos começar pelo problema: que problema você quer resolver, e pra quem ele dói hoje?"**
+
+Other example renderings of the same question:
+
+| Language | Rendering |
+|---|---|
+| English (default) | "Let's start with the problem: what problem do you want to solve, and who feels it today?" |
+| Português | "Vamos começar pelo problema: que problema você quer resolver, e pra quem ele dói hoje?" |
+| Español | "Empecemos por el problema: ¿qué problema quieres resolver, y a quién le duele hoy?" |
+| Français | "Commençons par le problème : quel problème veux-tu résoudre, et qui en souffre aujourd'hui ?" |
+| Italiano | "Iniziamo dal problema: quale problema vuoi risolvere, e chi ne soffre oggi?" |
+| Deutsch | "Fangen wir mit dem Problem an: Welches Problem willst du lösen, und wer hat es heute?" |
+
+The agent is responsible for idiomatic, not literal, translations. The goal is **low cognitive load** for the user, not textbook accuracy.
 
 ---
 
@@ -114,7 +159,7 @@ After the interview, the agent:
 
 1. Synthesizes answers into the EN template (see `templates.md`)
 2. Writes the file to `.sdd/product-vision.md`
-3. Shows the document to the user with **"Aqui está sua product vision. Lê e me diz se quer mudar alguma coisa antes de eu rodar o `/sdd-init`."**
+3. Shows the document to the user with a confirmation message **in the chosen interview language** (e.g., EN: *"Here is your product vision. Read it and tell me if you want to change anything before I run `/sdd-init`."*; PT-BR: *"Aqui está sua product vision. Lê e me diz se quer mudar alguma coisa antes de eu rodar o `/sdd-init`."*)
 4. If user wants edits, iterate until approved
 5. Marks the file as `Status: Approved` in frontmatter
 6. **Suggests** running `/sdd-init` next (does NOT auto-run it)

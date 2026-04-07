@@ -2,6 +2,8 @@
 
 > **Added in v1.2.0.** This file is the deep reference for the optional `--guided` flag that makes the skill usable by non-technical users (or by engineers who want lower-friction interviews on side projects).
 
+> **Multilingual (v1.2.1+):** the agent picks up the user's chosen interview language (set in Phase -1 via `/sdd-vision` or asked at the start of any interactive phase). The PT-BR examples in the tables below are **illustrative** — the agent translates jargon questions on the fly to whichever language the user selected. Smart defaults, auto-detection, and the "In plain English" banner all adapt to the chosen language. The output artifacts are always written in English.
+
 ## What it does
 
 Guided mode does **not** change the workflow. The 10 phases, the two human gates, the writer/reviewer separation — all of it stays identical. What changes is **how the agent talks to you** during interactive phases.

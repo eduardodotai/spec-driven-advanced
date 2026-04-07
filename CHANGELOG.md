@@ -5,6 +5,21 @@ All notable changes to `spec-driven-advanced` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] — 2026-04-07
+
+### Changed
+- **Phase -1 interview is now fully multilingual.** The agent's first message in `/sdd-vision` (and any other interactive phase) asks **in English** which language the user wants to use for the interview, then adapts every subsequent question. The final `product-vision.md` is still always written in English regardless of interview language. Previously the interview was hardcoded to PT-BR → EN.
+- **Canonical question bank is now in English** in `references/vision.md`. PT-BR examples remain as illustrative translations (alongside Español, Français, Italiano, Deutsch) showing how the agent adapts questions per language.
+- The agent records `interview_language: <code>` in the output document's frontmatter for auditability.
+- Default language is **English** when the user does not specify, skips, or says "default".
+- Mid-interview language switches are supported — answers are preserved.
+- `references/guided-mode.md` clarifies that the PT-BR translation tables are illustrative; the agent adapts jargon translations to whichever language the user selected.
+- `metadata.version` bumped to `1.2.1`.
+
+### Notes
+- This is a refinement of v1.2.0, not a new feature. Existing v1.2.0 behavior (defaulting to PT-BR) is replaced by the more universal default-to-English-with-explicit-choice flow.
+- No script changes. No template changes. No artifact format changes.
+
 ## [1.2.0] — 2026-04-07
 
 ### Added
@@ -64,6 +79,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Bilingual `README.md` (English + Português).
 - `LICENSE` (MIT), `.gitignore`, `.skillignore`.
 
+[1.2.1]: https://github.com/eduardodotai/spec-driven-advanced/releases/tag/v1.2.1
 [1.2.0]: https://github.com/eduardodotai/spec-driven-advanced/releases/tag/v1.2.0
 [1.1.0]: https://github.com/eduardodotai/spec-driven-advanced/releases/tag/v1.1.0
 [1.0.0]: https://github.com/eduardodotai/spec-driven-advanced/releases/tag/v1.0.0

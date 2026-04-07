@@ -15,7 +15,7 @@ The phases form a strict pipeline. Each phase consumes the previous artifact and
 
 **Output:** `.sdd/product-vision.md`
 
-**Mode:** **Bilingual interactive interview** — agent asks questions in PT-BR (user's native language), writes the artifact in EN. The Constitution and every feature spec downstream will load this file as context, so the product story is never re-litigated.
+**Mode:** **Multilingual interactive interview** (v1.2.1+) — the agent's first message asks the user which language to use for the interview (English by default), then adapts every question to that language. The artifact is **always written in English**, regardless of interview language. The Constitution and every feature spec downstream will load this file as context, so the product story is never re-litigated.
 
 **Required sections:**
 - **Overview** — one paragraph elevator pitch

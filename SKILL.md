@@ -24,7 +24,7 @@ allowed-tools:
   - Bash
   - Task
 metadata:
-  version: 1.2.0
+  version: 1.2.1
   author: eduardodotai
   domains: [meta-skill, software-engineering, sdd, rpi, workflow, planning, agentic, parallel-agents, product-vision, guided-mode]
   type: workflow-orchestrator
@@ -56,7 +56,7 @@ Then run `scripts/init_sdd_project.py` (if no `.sdd/` exists) and `scripts/new_f
 
 | # | Phase | When | Output | Mode | Gate |
 |---|-------|------|--------|------|------|
-| -1 | **Vision** | Greenfield init, before Constitution | `.sdd/product-vision.md` | Bilingual interview (PT→EN) | — |
+| -1 | **Vision** | Greenfield init, before Constitution | `.sdd/product-vision.md` | Multilingual interview (asks language first → EN doc) | — |
 | 0 | **Constitution** | Project init, one time | `.sdd/constitution.md` | Interactive interview, vision-aware | — |
 | 1 | **Research** | Brownfield only, before each feature | `research.md` | Agent autonomous (read-only) | — |
 | 2 | **Spec** | After Research (or Constitution if greenfield) | `spec.md` | Collaborative draft | — |
@@ -129,7 +129,7 @@ When running inside Claude Code, expose these commands. Each one loads only the 
 
 | Command | Phase | Purpose |
 |---------|-------|---------|
-| `/sdd-vision` | -1 | Bilingual interview (PT→EN) — produces `product-vision.md`. Greenfield only. |
+| `/sdd-vision` | -1 | Multilingual interview — agent asks the user's preferred language first (English default), produces `product-vision.md` in EN. Greenfield only. |
 | `/sdd-init [--with-vision-stub] [--guided]` | 0 | Bootstrap `.sdd/` and walk the user through the constitution interview |
 | `/sdd-research <feature>` | 1 | Brownfield codebase investigation, no code, no opinions |
 | `/sdd-spec <feature>` | 2 | Draft the spec (problem, goals, ACs, edge cases) |

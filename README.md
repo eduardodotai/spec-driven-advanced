@@ -72,7 +72,7 @@ You can also invoke the slash commands directly:
 
 | Command | What it does |
 |---------|--------------|
-| `/sdd-vision` | **(v1.2.0)** Bilingual interview (PT→EN) — produces `product-vision.md`. Greenfield only. |
+| `/sdd-vision` | **(v1.2.0)** Multilingual interview — agent asks your preferred language first (English default), produces `product-vision.md` in EN. Greenfield only. |
 | `/sdd-init [--with-vision-stub] [--guided]` | Bootstrap `.sdd/` and walk through the constitution interview |
 | `/sdd-research <feature>` | Brownfield codebase investigation (no code, no opinions) |
 | `/sdd-spec <feature>` | Draft the spec (problem, goals, ACs, edge cases) |
@@ -108,7 +108,7 @@ your-project/
 
 ## Product Vision + Guided Mode (v1.2.0)
 
-**Phase -1 (Vision)** captures the high-level product story before the engineering rigor kicks in. It runs a **bilingual interview** — questions in the user's native language (PT-BR by default), document written in English. The Constitution and every feature spec downstream load this file as context, so the product story is never re-litigated.
+**Phase -1 (Vision)** captures the high-level product story before the engineering rigor kicks in. It runs a **multilingual interview** — the agent's first message asks which language you want to use (English by default; supports Português, Español, Français, and many more), then adapts every question to that language. The final `product-vision.md` is **always written in English** regardless of interview language. The Constitution and every feature spec downstream load this file as context, so the product story is never re-litigated.
 
 **Guided mode** is an optional accessibility layer for non-engineers (or for engineers wanting lower friction on side projects). Activate with `--guided` on any interactive slash command. It translates technical jargon into plain-language questions and infers smart defaults from product type — but the output artifacts and quality bars are **identical** to default mode.
 
